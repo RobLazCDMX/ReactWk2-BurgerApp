@@ -27,6 +27,7 @@ class BurgerBuilder extends Component {
     }
 
     componentDidMount () {
+        console.log(this.props);
         axios.get('https://react-my-burger-3f79e-default-rtdb.firebaseio.com/ingredients.json')
         .then(response => {
             this.setState({ingredients: response.data});
@@ -89,29 +90,41 @@ class BurgerBuilder extends Component {
     }
 
     purchaseContinueHandler = () => {
-        //alert('You continue!');
-        this.setState( {loading:true});
-        const order = {
-            ingredients : this.state.ingredients,
-            price: this.state.totalPrice,
-            customer: {
-                name: 'Roberto Lazcano',
-                address: {
-                    street: 'Teststreet 1',
-                    zipCoce: '12234',
-                    country: 'Mexico'
-                },
-                email: 'test@test.com'  
-            },
-            deliveryMethod: 'fastest'
+        // //alert('You continue!');
+        // this.setState( {loading:true});
+        // const order = {
+        //     ingredients : this.state.ingredients,
+        //     price: this.state.totalPrice,
+        //     customer: {
+        //         name: 'Roberto Lazcano',
+        //         address: {
+        //             street: 'Teststreet 1',
+        //             zipCoce: '12234',
+        //             country: 'Mexico'
+        //         },
+        //         email: 'test@test.com'  
+        //     },
+        //     deliveryMethod: 'fastest'
+        // }
+        // axios.post('/orders.json', order) //json: this is the end point that we need to target for firebase to function correctly. It will vary depending on the backend or service we use
+        //     .then(response =>{
+        //         this.setState({loading: false, purchasing: false});
+        //     })
+        //     .catch(error => {
+        //         this.setState({loading: false, purchasing: false});
+        //     });
+        const queryParams = [];
+        for (let i in this.state.ingredients) {
+            queryParams.push(encodeURIComponent(i) + '=' + encodeURIComponent(this.state.ingredients[i]))
         }
-        axios.post('/orders.json', order) //json: this is the end point that we need to target for firebase to function correctly. It will vary depending on the backend or service we use
-            .then(response =>{
-                this.setState({loading: false, purchasing: false});
-            })
-            .catch(error => {
-                this.setState({loading: false, purchasing: false});
-            });
+        queryParams.push('price=' + this.state.totalPrice);
+        const queryString = queryParams.join('&');
+        this.props.history.push({
+            pathname: '/checkout',
+            search: '?' + queryString
+        });
+        
+
     }
     
 
@@ -125,7 +138,7 @@ class BurgerBuilder extends Component {
         };
 
         let orderSummary = null;
-        let burger = this.state.error ? <p>ingredients can't be loaded</p> : <Spinner />;
+        let burger = this.state.error ? <p>ingredients can't be loaded!</p> : <Spinner />;
 
         if (this.state.ingredients) {
             burger = (
@@ -157,7 +170,7 @@ class BurgerBuilder extends Component {
         // {salad: true, meat:false, ...} this is what's in the object
         return (  
             <Aux>
-                <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelledHandler} >
+                <Modal show={this.state.purchasing} modalClosed={this.purchaseCancelHandler} >
                     {orderSummary} 
                 </Modal>
                 {burger}    
